@@ -2,8 +2,11 @@
 
 public static class MeshGenerator
 {
-    public static MeshData GenerateTerrainMesh(float[,] heightMap, float heightMultiplier, AnimationCurve heightCurve, int levelOfDetail)
+    public static MeshData GenerateTerrainMesh(float[,] heightMap, float heightMultiplier, AnimationCurve curve, int levelOfDetail)
     {
+        //To avoid weird hills spikes now every thread has its own animation curve. :(
+        AnimationCurve heightCurve = new AnimationCurve(curve.keys);
+        
         int width = heightMap.GetLength(0); // Getting the array´s 1st dimension
         int height = heightMap.GetLength(1); // Getting the array´s 2nd dimension
         
