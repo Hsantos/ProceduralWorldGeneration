@@ -88,6 +88,8 @@ public partial class EndlessTerrain
                         lodMesh.RequestMesh(mapData);
                     }
                 }
+                
+                terrainChunkVisibleLastUpdate.Add(this);
             }
             SetVisible(visible);
         }
