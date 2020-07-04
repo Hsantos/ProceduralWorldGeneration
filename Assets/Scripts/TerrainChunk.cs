@@ -31,8 +31,9 @@ public partial class EndlessTerrain
             meshFilter = meshObject.AddComponent<MeshFilter>();
             meshRenderer.material = material;
             
-            meshObject.transform.position = positionV3;
-            meshObject.transform.parent = parent; 
+            meshObject.transform.position = positionV3 * scale;
+            meshObject.transform.parent = parent;
+            meshObject.transform.localScale = Vector3.one * scale;
             SetVisible(false);
 
             lodMeshes = new LODMesh[detailLevels.Length];
