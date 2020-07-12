@@ -26,7 +26,7 @@ public static class FallOffGenerator
     public static float Evaluate(float value)
     {
         float a = 3f;
-        float b = 5f;
+        float b =2.2f;
         
         // Applying to the formula:
         // f(x) Xª / xª + (b - bx)ª

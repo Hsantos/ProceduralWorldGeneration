@@ -129,7 +129,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                Debug.Break();
+                Application.Quit();
             }
             
             RotateView();

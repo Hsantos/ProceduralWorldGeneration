@@ -5,8 +5,6 @@ using UnityEngine;
 
 public partial class EndlessTerrain : MonoBehaviour
 {
-    private const float scale = 2f;
-    
     private const float viewerMoveThresholdForChunkUpdate = 25f;
     private const float sqrViewerMoveThresholdForChunkUpdate = viewerMoveThresholdForChunkUpdate * viewerMoveThresholdForChunkUpdate;
     
@@ -31,7 +29,7 @@ public partial class EndlessTerrain : MonoBehaviour
         mapGenerator = FindObjectOfType<MapGenerator>();
 
         maxViewDst = detailLevels[detailLevels.Length - 1].visibleDstThreshold;
-        chunkSize = MapGenerator.MAP_CHUNK_SIZE - 1;
+        chunkSize = mapGenerator.mapChunkSize - 1;
         chuncksVisibleInViewDst = Mathf.RoundToInt(maxViewDst / chunkSize);
         
         UpdateVisibleChunks();
@@ -39,7 +37,7 @@ public partial class EndlessTerrain : MonoBehaviour
 
     private void Update()
     {
-        viewerPosition = new Vector2(viewer.position.x, viewer.position.z) / scale;
+        viewerPosition = new Vector2(viewer.position.x, viewer.position.z) / mapGenerator.TerrainData.UniformScale;
 
         if ((viewerPositionOld - viewerPosition).sqrMagnitude > sqrViewerMoveThresholdForChunkUpdate)
         {

@@ -34,9 +34,9 @@ public partial class EndlessTerrain
             meshCollider = meshObject.AddComponent<MeshCollider>();
             meshRenderer.material = material;
             
-            meshObject.transform.position = positionV3 * scale;
+            meshObject.transform.position = positionV3 * mapGenerator.TerrainData.UniformScale;
             meshObject.transform.parent = parent;
-            meshObject.transform.localScale = Vector3.one * scale;
+            meshObject.transform.localScale = Vector3.one * mapGenerator.TerrainData.UniformScale;
             SetVisible(false);
 
             lodMeshes = new LODMesh[detailLevels.Length];
@@ -57,9 +57,6 @@ public partial class EndlessTerrain
         {
             this.mapData = mapData;
             mapDataReceived = true;
-
-            Texture2D texture = TextureGenerator.TextureFromColourMap(mapData.colourMap, MapGenerator.MAP_CHUNK_SIZE, MapGenerator.MAP_CHUNK_SIZE);
-            meshRenderer.material.mainTexture = texture;
             
             UpdateTerrainChunk();
         }
