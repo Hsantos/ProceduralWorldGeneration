@@ -7,31 +7,79 @@ public static class MeshGenerator
         //To avoid weird hills spikes now every thread has its own animation curve. :(
         AnimationCurve heightCurve = new AnimationCurve(curve.keys);
         
-        int width = heightMap.GetLength(0); // Getting the array´s 1st dimension
-        int height = heightMap.GetLength(1); // Getting the array´s 2nd dimension
+        int meshSimplificationIncrement = levelOfDetail == 0 ? 1 : levelOfDetail * 2;
+        
+        // The borderedSize will not be included in the final mesh. Using just to calculate the normals
+        int borderedSize = heightMap.GetLength(0); 
+        int meshSize = borderedSize - 2 * meshSimplificationIncrement;
+        int meshSizeUnsimplified = borderedSize - 2;
         
         // To set the vertex to the center
-        float topLeftX = (width - 1)/-2f;
-        float topLeftZ = (height - 1)/2f;
+        float topLeftX = (meshSizeUnsimplified - 1)/-2f;
+        float topLeftZ = (meshSizeUnsimplified - 1)/2f;
 
-        int meshSimplificationIncrement = levelOfDetail == 0 ? 1 : levelOfDetail * 2;
-        int verticesPerLine = (width - 1) / meshSimplificationIncrement + 1;
+        int verticesPerLine = (meshSize - 1) / meshSimplificationIncrement + 1;
         
-        MeshData meshData = new MeshData(verticesPerLine, verticesPerLine);
-        int vertexIndex = 0;
+        MeshData meshData = new MeshData(verticesPerLine);
         
-        for (int y = 0; y < height; y += meshSimplificationIncrement)
+        int [,] vertexIndicesMap = new int[borderedSize,borderedSize];
+        
+        int meshVertexIndex = 0;
+        int borderVertexIndex = -1;
+
+        for (int y = 0; y < borderedSize; y += meshSimplificationIncrement)
         {
-            for (int x = 0; x < width; x += meshSimplificationIncrement)
+            for (int x = 0; x < borderedSize; x += meshSimplificationIncrement)
             {
-                float meshHeight = heightCurve.Evaluate(heightMap[x, y]) * heightMultiplier;
-                meshData.vertices[vertexIndex] = new Vector3(topLeftX + x,meshHeight, topLeftZ - y);
-                meshData.uvs[vertexIndex] = new Vector2(x / (float)width, y / (float)height);
+                bool isBorderVertex = (y == 0 || y == borderedSize - 1 || x == 0 || x == borderedSize - 1);
 
-                if (x < width - 1 && y < height - 1)
+                if (isBorderVertex)
                 {
-                    meshData.AddTriangle(vertexIndex, vertexIndex + verticesPerLine + 1, vertexIndex + verticesPerLine);
-                    meshData.AddTriangle(vertexIndex + verticesPerLine + 1, vertexIndex, vertexIndex + 1);
+                    vertexIndicesMap[x, y] = borderVertexIndex;
+                    borderVertexIndex--;
+                }
+                else
+                {
+                    vertexIndicesMap[x, y] = meshVertexIndex;
+                    meshVertexIndex++;
+                }
+            }
+        }
+
+        for (int y = 0; y < borderedSize; y += meshSimplificationIncrement)
+        {
+            for (int x = 0; x < borderedSize; x += meshSimplificationIncrement)
+            {
+                int vertexIndex = vertexIndicesMap[x, y];
+                
+                Vector2 percent = new Vector2((x - meshSimplificationIncrement) / (float)meshSize, (y - meshSimplificationIncrement) / (float)meshSize);
+                
+                float meshHeight = heightCurve.Evaluate(heightMap[x, y]) * heightMultiplier;
+                Vector3 vertexPosition = new Vector3(topLeftX + percent.x * meshSizeUnsimplified,meshHeight, topLeftZ - percent.y * meshSizeUnsimplified);
+                
+                meshData.AddVertex(vertexPosition, percent, vertexIndex);
+
+                if (x < borderedSize - 1 && y < borderedSize - 1)
+                {
+                    int pointA = vertexIndicesMap[x, y];
+                    int pointB = vertexIndicesMap[x + meshSimplificationIncrement, y];
+                    int pointC = vertexIndicesMap[x, y + meshSimplificationIncrement];
+                    int pointD = vertexIndicesMap[x + meshSimplificationIncrement, y + meshSimplificationIncrement];
+
+                    /* Setting the triangle according to the square point:
+                     * 
+                     *     a    b
+                     *      O    O
+                     * 
+                     *      O    O
+                     *     c    d
+                     *
+                     * Run clockwise to define the 2 triangles we have
+                     * Triangle A = adc
+                     * Triangle B = dab
+                     */
+                    meshData.AddTriangle(pointA, pointD, pointC);
+                    meshData.AddTriangle(pointD, pointA, pointB);
                 }
                 
                 vertexIndex++;
