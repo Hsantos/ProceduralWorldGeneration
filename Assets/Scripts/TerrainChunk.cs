@@ -10,9 +10,11 @@ public partial class EndlessTerrain
 
         private MeshRenderer meshRenderer;
         private MeshFilter meshFilter;
+        private MeshCollider meshCollider;
 
         private LODInfo[] detailLevels;
         private LODMesh[] lodMeshes;
+        private LODMesh collisionLODMesh;
 
         private MapData mapData;
         private bool mapDataReceived;
@@ -29,6 +31,7 @@ public partial class EndlessTerrain
             meshObject = new GameObject("Terrain Chunk");
             meshRenderer = meshObject.AddComponent<MeshRenderer>();
             meshFilter = meshObject.AddComponent<MeshFilter>();
+            meshCollider = meshObject.AddComponent<MeshCollider>();
             meshRenderer.material = material;
             
             meshObject.transform.position = positionV3 * scale;
@@ -41,6 +44,10 @@ public partial class EndlessTerrain
             for (int i = 0; i < detailLevels.Length; i++)
             {
                 lodMeshes[i] = new LODMesh(detailLevels[i].lod, UpdateTerrainChunk);
+                if (detailLevels[i].useForCollider)
+                {
+                    collisionLODMesh = lodMeshes[i];
+                }
             }
             
             mapGenerator.RequestMapData(position, OnMapDataReceived);
@@ -87,6 +94,18 @@ public partial class EndlessTerrain
                     else if(!lodMesh.hasRequestedMesh)
                     {
                         lodMesh.RequestMesh(mapData);
+                    }
+                }
+
+                if (lodIndex == 0)
+                {
+                    if (collisionLODMesh.hasMesh)
+                    {
+                        meshCollider.sharedMesh = collisionLODMesh.mesh;
+                    }
+                    else if(!collisionLODMesh.hasRequestedMesh)
+                    {
+                        collisionLODMesh.RequestMesh(mapData);
                     }
                 }
                 

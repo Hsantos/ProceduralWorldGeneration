@@ -5,7 +5,7 @@ using UnityEngine;
 
 public partial class EndlessTerrain : MonoBehaviour
 {
-    private const float scale = 1f;
+    private const float scale = 2f;
     
     private const float viewerMoveThresholdForChunkUpdate = 25f;
     private const float sqrViewerMoveThresholdForChunkUpdate = viewerMoveThresholdForChunkUpdate * viewerMoveThresholdForChunkUpdate;
@@ -123,5 +123,6 @@ public partial class EndlessTerrain : MonoBehaviour
     {
         public int lod;
         public float visibleDstThreshold;
+        public bool useForCollider;
     }
 }

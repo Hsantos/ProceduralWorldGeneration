@@ -22,6 +22,7 @@ public class MeshData
     private Vector3[] vertices;
     private int[] triangles;
     private Vector2[] uvs;
+    private Vector3[] backedNormals;
 
     private Vector3[] borderVertices;
     private int[] borderTriangles;
@@ -144,13 +145,18 @@ public class MeshData
         return -index - 1;
     }
 
+    public void BakeNormals()
+    {
+        backedNormals = CalculateNormals();
+    }
+
     public Mesh CreateMesh()
     {
         Mesh mesh = new Mesh();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         mesh.uv = uvs;
-        mesh.normals = CalculateNormals();
+        mesh.normals = backedNormals;
         return mesh;
     }
 }
