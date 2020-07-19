@@ -9,14 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53fc0fb5fd8c52b4c8106bee32c0b748, type: 3}
-  m_Name: MarsNoiseData
+  m_Script: {fileID: 11500000, guid: b3ee7ca2384afc140881509d1af41e00, type: 3}
+  m_Name: MarsTextureData
   m_EditorClassIdentifier: 
-  autoUpdate: 1
-  normalizeMode: 0
-  noiseScale: 50
-  octaves: 6
-  persistence: 0.471
-  lacunarity: 2
-  seed: 0
-  offset: {x: 0, y: 0}
+  autoUpdate: 0
+  baseColours:
+  - {r: 0, g: 0, b: 0, a: 0}
+  baseStartHeights:
+  - 0

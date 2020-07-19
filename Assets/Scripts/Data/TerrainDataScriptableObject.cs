@@ -5,7 +5,8 @@ namespace ChannelThree.ProcedutalWorld.Data
     [CreateAssetMenu(menuName = "Channel 3/Procedural World/Terrain Data")]
     public class TerrainDataScriptableObject : UpdatableData
     {
-        private float uniformScale = 2.5f;
+        [SerializeField]
+        private float uniformScale = 2f;
         public float UniformScale => uniformScale;
         
         [SerializeField]
@@ -23,6 +24,9 @@ namespace ChannelThree.ProcedutalWorld.Data
         [SerializeField]
         private AnimationCurve meshHeightCurve;
         public AnimationCurve MeshHeightCurve => meshHeightCurve;
+
+        public float MinHeight => uniformScale * meshHeightMultiplier * meshHeightCurve.Evaluate(0);
+        public float MaxHeight => uniformScale * meshHeightMultiplier * meshHeightCurve.Evaluate(1);
 
         protected override void OnValidate()
         {

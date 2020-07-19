@@ -10,12 +10,13 @@ namespace ChannelThree.ProcedutalWorld.Data
 
         protected virtual void OnValidate()
         {
-            if(autoUpdate)
-                NotifyOfUpdateValues();
+            if (autoUpdate)
+                UnityEditor.EditorApplication.update += NotifyOfUpdateValues;
         }
 
         public void NotifyOfUpdateValues()
         {
+            UnityEditor.EditorApplication.update -= NotifyOfUpdateValues;
             OnValuesUpdated?.Invoke();
         }
     }

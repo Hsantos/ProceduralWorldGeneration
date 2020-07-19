@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: MarsTerrainData
   m_EditorClassIdentifier: 
   autoUpdate: 1
-  meshHeightMultiplier: 25
+  uniformScale: 2
+  meshHeightMultiplier: 40
   useFlatShading: 1
-  useFalloffMap: 1
+  useFalloffMap: 0
   meshHeightCurve:
     serializedVersion: 2
     m_Curve:
@@ -29,14 +30,14 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.3102325
-      value: 0.0072580036
-      inSlope: -0.008052177
-      outSlope: -0.008052177
+      time: 0.44450575
+      value: 0.09069702
+      inSlope: 0.6922461
+      outSlope: 0.6922461
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.18972984
-      outWeight: 0.33333334
+      inWeight: 0.115097255
+      outWeight: 0.07837758
     - serializedVersion: 3
       time: 1
       value: 1

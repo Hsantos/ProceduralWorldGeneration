@@ -19,16 +19,17 @@ public class MapGenerator : MonoBehaviour
 
     [SerializeField]
     private NoiseDataScriptableObject noiseData;
-    public NoiseDataScriptableObject NoiseData => noiseData;
 
     [SerializeField]
     private TextureDataScriptableObject textureData;
-    public TextureDataScriptableObject TextureData => textureData;
+    
+    [SerializeField]
+    private Material terrainMaterial;
 
     [SerializeField]
     private DrawMode drawMode = DrawMode.NoiseMap;
 
-    [Range(1,6)]
+    [Range(0,6)]
     [SerializeField]
     private int editorPreviewLOD;
     
@@ -36,9 +37,6 @@ public class MapGenerator : MonoBehaviour
     private bool autoUpdate = true;
     public bool AutoUpdate => autoUpdate;
 
-    [SerializeField]
-    private Material terrainMaterial;
-    
     private float[,] falloffMap;
     
     Queue<MapThreadInfo<MapData>> mapDataThreadInfoQueue = new Queue<MapThreadInfo<MapData>>();
@@ -219,6 +217,8 @@ public class MapGenerator : MonoBehaviour
                 }
             } 
         }
+        
+        textureData.UpdateMeshHeights(terrainMaterial, terrainData.MinHeight, terrainData.MaxHeight);
         
         return new MapData(noiseMap);
     }
