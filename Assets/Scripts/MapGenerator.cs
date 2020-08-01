@@ -29,7 +29,15 @@ public class MapGenerator : MonoBehaviour
     [SerializeField]
     private DrawMode drawMode = DrawMode.NoiseMap;
 
-    [Range(0,6)]
+    [Range(0, MeshGenerator.numSupportedChunkSizes - 1)]
+    [SerializeField]
+    private int chunkSizeIndex;
+    
+    [Range(0, MeshGenerator.numSupportedFlatShadedChunkSizes - 1)]
+    [SerializeField]
+    private int flatShadedChunkSizeIndex;
+    
+    [Range(0,MeshGenerator.numSupportedLODs - 1)]
     [SerializeField]
     private int editorPreviewLOD;
     
@@ -47,9 +55,9 @@ public class MapGenerator : MonoBehaviour
         get
         {
             if (terrainData.UseFlatShading)
-                return 95;
-            else
-                return 239;
+                return MeshGenerator.supportedFlatShadedChunkSizes[flatShadedChunkSizeIndex] - 1;
+            
+            return MeshGenerator.supportedChunkSizes[chunkSizeIndex] - 1;
         }
     }
 
@@ -72,6 +80,12 @@ public class MapGenerator : MonoBehaviour
             textureData.OnValuesUpdated -= OnTextureValuesUpdated;
             textureData.OnValuesUpdated += OnTextureValuesUpdated;
         }
+    }
+
+    private void Awake()
+    {
+        textureData.ApplyToMaterial(terrainMaterial);
+        textureData.UpdateMeshHeights(terrainMaterial, terrainData.MinHeight, terrainData.MaxHeight);
     }
 
     private void OnValuesUpdate()
@@ -110,6 +124,8 @@ public class MapGenerator : MonoBehaviour
 
     public void DrawMapInEditor()
     {
+        textureData.UpdateMeshHeights(terrainMaterial, terrainData.MinHeight, terrainData.MaxHeight);
+        
         MapData mapData = GenerateMapData(Vector2.zero);
         MapDisplay display = FindObjectOfType<MapDisplay>();
 
@@ -217,8 +233,6 @@ public class MapGenerator : MonoBehaviour
                 }
             } 
         }
-        
-        textureData.UpdateMeshHeights(terrainMaterial, terrainData.MinHeight, terrainData.MaxHeight);
         
         return new MapData(noiseMap);
     }

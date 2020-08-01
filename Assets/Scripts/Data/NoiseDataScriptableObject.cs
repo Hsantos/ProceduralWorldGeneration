@@ -34,6 +34,7 @@ namespace ChannelThree.ProcedutalWorld.Data
         private Vector2 offset = Vector2.zero;
         public Vector2 Offset => offset;
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             if (lacunarity < 1) lacunarity = 1;
@@ -41,5 +42,6 @@ namespace ChannelThree.ProcedutalWorld.Data
             
             base.OnValidate();
         }
+#endif
     }
 }

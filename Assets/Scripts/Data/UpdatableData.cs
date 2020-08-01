@@ -8,6 +8,8 @@ namespace ChannelThree.ProcedutalWorld.Data
         public event System.Action OnValuesUpdated;
         public bool autoUpdate;
 
+#if UNITY_EDITOR
+
         protected virtual void OnValidate()
         {
             if (autoUpdate)
@@ -19,5 +21,7 @@ namespace ChannelThree.ProcedutalWorld.Data
             UnityEditor.EditorApplication.update -= NotifyOfUpdateValues;
             OnValuesUpdated?.Invoke();
         }
+        
+#endif
     }
 }

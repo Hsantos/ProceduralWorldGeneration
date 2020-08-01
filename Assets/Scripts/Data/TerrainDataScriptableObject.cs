@@ -28,11 +28,13 @@ namespace ChannelThree.ProcedutalWorld.Data
         public float MinHeight => uniformScale * meshHeightMultiplier * meshHeightCurve.Evaluate(0);
         public float MaxHeight => uniformScale * meshHeightMultiplier * meshHeightCurve.Evaluate(1);
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             if(meshHeightMultiplier < 1) meshHeightMultiplier = 1;
             
             base.OnValidate();
         }
+#endif
     }
 }

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MarsTerrainData
   m_EditorClassIdentifier: 
   autoUpdate: 1
-  uniformScale: 2
+  uniformScale: 2.5
   meshHeightMultiplier: 40
   useFlatShading: 1
   useFalloffMap: 0

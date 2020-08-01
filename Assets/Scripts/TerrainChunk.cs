@@ -4,6 +4,8 @@ public partial class EndlessTerrain
 {
     private class TerrainChunk
     {
+        public Vector2 coord;
+        
         private GameObject meshObject;
         private Vector2 position;
         private Bounds bounds;
@@ -14,15 +16,19 @@ public partial class EndlessTerrain
 
         private LODInfo[] detailLevels;
         private LODMesh[] lodMeshes;
-        private LODMesh collisionLODMesh;
 
         private MapData mapData;
-        private bool mapDataReceived;
         private int previousLODIndex = -1;
+        private int colliderLodIndex;
         
-        public TerrainChunk(Vector2 coord, int size, LODInfo[] detailLevels, Transform parent, Material material)
+        private bool mapDataReceived;
+        private bool hasSetCollider;
+        
+        public TerrainChunk(Vector2 coord, int size, LODInfo[] detailLevels, int colliderLodIndex, Transform parent, Material material)
         {
+            this.coord = coord;
             this.detailLevels = detailLevels;
+            this.colliderLodIndex = colliderLodIndex;
             
             position = coord * size;
             bounds = new Bounds(position, Vector2.one * size);
@@ -43,10 +49,11 @@ public partial class EndlessTerrain
 
             for (int i = 0; i < detailLevels.Length; i++)
             {
-                lodMeshes[i] = new LODMesh(detailLevels[i].lod, UpdateTerrainChunk);
-                if (detailLevels[i].useForCollider)
+                lodMeshes[i] = new LODMesh(detailLevels[i].lod);
+                lodMeshes[i].updateCallback += UpdateTerrainChunk;
+                if (i == colliderLodIndex)
                 {
-                    collisionLODMesh = lodMeshes[i];
+                    lodMeshes[i].updateCallback += UpdateCollisionMesh;
                 }
             }
             
@@ -67,6 +74,8 @@ public partial class EndlessTerrain
                 return;
             
             float viewerDstFromNearestEdge = Mathf.Sqrt(bounds.SqrDistance(viewerPosition));
+
+            bool wasVisible = IsVisible();
             bool visible = viewerDstFromNearestEdge <= maxViewDst;
 
             if (visible)
@@ -93,22 +102,40 @@ public partial class EndlessTerrain
                         lodMesh.RequestMesh(mapData);
                     }
                 }
-
-                if (lodIndex == 0)
-                {
-                    if (collisionLODMesh.hasMesh)
-                    {
-                        meshCollider.sharedMesh = collisionLODMesh.mesh;
-                    }
-                    else if(!collisionLODMesh.hasRequestedMesh)
-                    {
-                        collisionLODMesh.RequestMesh(mapData);
-                    }
-                }
-                
-                terrainChunkVisibleLastUpdate.Add(this);
             }
-            SetVisible(visible);
+
+            if (wasVisible != visible)
+            {
+                if (visible)
+                    visibleTerrainChunks.Add(this);
+                else
+                    visibleTerrainChunks.Remove(this);
+                
+                SetVisible(visible);
+            }
+        }
+
+        public void UpdateCollisionMesh()
+        {
+            if(hasSetCollider)
+                return;
+            
+            float sqrDstFromViewerToEdge = bounds.SqrDistance(viewerPosition);
+
+            if (sqrDstFromViewerToEdge < detailLevels[colliderLodIndex].sqrVisibleDstThreshold)
+            {
+                if (!lodMeshes[colliderLodIndex].hasRequestedMesh)
+                    lodMeshes[colliderLodIndex].RequestMesh(mapData);
+            }
+            
+            if (sqrDstFromViewerToEdge < colliderGenerationDistanceThreshold * colliderGenerationDistanceThreshold)
+            {
+                if (lodMeshes[colliderLodIndex].hasMesh)
+                {
+                    meshCollider.sharedMesh = lodMeshes[colliderLodIndex].mesh;
+                    hasSetCollider = true;
+                }
+            }
         }
 
         public void SetVisible(bool visible)

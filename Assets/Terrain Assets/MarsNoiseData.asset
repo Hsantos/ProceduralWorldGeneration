@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MarsNoiseData
   m_EditorClassIdentifier: 
   autoUpdate: 1
-  normalizeMode: 0
+  normalizeMode: 1
   noiseScale: 50
   octaves: 6
   persistence: 0.471
