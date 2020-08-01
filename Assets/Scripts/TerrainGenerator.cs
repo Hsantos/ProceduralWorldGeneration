@@ -4,35 +4,37 @@ using System.Collections.Generic;
 using ChannelThree.ProcedutalWorld.Data;
 using UnityEngine;
 
-public partial class EndlessTerrain : MonoBehaviour
+public class TerrainGenerator : MonoBehaviour
 {
     private const float viewerMoveThresholdForChunkUpdate = 25f;
     private const float sqrViewerMoveThresholdForChunkUpdate = viewerMoveThresholdForChunkUpdate * viewerMoveThresholdForChunkUpdate;
-    private const float colliderGenerationDistanceThreshold = 5;
 
     public int colliderLODIndex;
     public LODInfo[] detailLevels;
-    public static float maxViewDst;
+
+    public MeshSettings meshSettings;
+    public HeightMapSettings heightMapSettings;
+    public TextureDataScriptableObject textureDataSettings;
+    
     
     public Transform viewer;
     public Material mapMaterial;
 
-    public static Vector2 viewerPosition;
+    private Vector2 viewerPosition;
     private Vector2 viewerPositionOld;
-
     private float meshWorldSize;
     private int chuncksVisibleInViewDst;
-    private static MapGenerator mapGenerator;
     
-    Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
-    private static List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
+    private Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
+    private List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
     private void Start()
     {
-        mapGenerator = FindObjectOfType<MapGenerator>();
-
-        maxViewDst = detailLevels[detailLevels.Length - 1].visibleDstThreshold;
-        meshWorldSize = mapGenerator.MeshSettings.MeshWorldSize;
+        textureDataSettings.ApplyToMaterial(mapMaterial);
+        textureDataSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.MinHeight, heightMapSettings.MaxHeight);
+        
+        float maxViewDst = detailLevels[detailLevels.Length - 1].visibleDstThreshold;
+        meshWorldSize = meshSettings.MeshWorldSize;
         chuncksVisibleInViewDst = Mathf.RoundToInt(maxViewDst / meshWorldSize);
         
         UpdateVisibleChunks();
@@ -84,59 +86,30 @@ public partial class EndlessTerrain : MonoBehaviour
                     }
                     else
                     {
-                        terrainChunkDictionary.Add
-                        (
-                            viewedChunkCoord, 
-                            new TerrainChunk
-                            (
-                                viewedChunkCoord, 
-                                meshWorldSize, 
-                                detailLevels,
-                                colliderLODIndex,
-                                transform, 
-                                mapMaterial
-                            )
-                        );
+                        TerrainChunk terrainChunk = new TerrainChunk(
+                                                            viewedChunkCoord,
+                                                            heightMapSettings,
+                                                            meshSettings,
+                                                            detailLevels,
+                                                            colliderLODIndex,
+                                                            transform,
+                                                            viewer,
+                                                            mapMaterial);
+                            
+                        terrainChunkDictionary.Add(viewedChunkCoord, terrainChunk);
+                        terrainChunk.onVisibilityChanged += OnTerrainChunkVisibilityChanged;
+                        terrainChunk.Load();
                     }  
                 }
             }
         }
     }
-    
-    class LODMesh
+
+    private void OnTerrainChunkVisibilityChanged(TerrainChunk chunk, bool isVisible)
     {
-        public Mesh mesh;
-        public bool hasRequestedMesh;
-        public bool hasMesh;
-        private int lod;
-
-        public event Action updateCallback;
-
-        public LODMesh(int lod)
-        {
-            this.lod = lod;
-        }
-
-        public void RequestMesh(HeightMap heightMap)
-        {
-            hasRequestedMesh = true;
-            mapGenerator.RequestMeshData(heightMap, lod, OnMeshDataReceived);
-        }
-
-        void OnMeshDataReceived(MeshData meshData)
-        {
-            mesh = meshData.CreateMesh();
-            hasMesh = true;
-            updateCallback();
-        }
-    }
-    
-    [System.Serializable]
-    public struct LODInfo
-    {
-        [Range(0,MeshSettings.numSupportedLODs - 1)]
-        public int lod;
-        public float visibleDstThreshold;
-        public float sqrVisibleDstThreshold => visibleDstThreshold * visibleDstThreshold;
+        if (isVisible)
+            visibleTerrainChunks.Add(chunk);
+        else
+            visibleTerrainChunks.Remove(chunk);
     }
 }

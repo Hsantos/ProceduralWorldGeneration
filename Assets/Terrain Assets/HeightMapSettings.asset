@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoUpdate: 1
   noiseSettings:
-    normalizeMode: 0
+    normalizeMode: 1
     scale: 50
     octaves: 6
     persistence: 0.5
     lacunarity: 2
     seed: 0
     offset: {x: 0, y: 0}
-  useFalloffMap: 0
+  useFalloffMap: 1
   heightMultiplier: 50
   heightCurve:
     serializedVersion: 2
