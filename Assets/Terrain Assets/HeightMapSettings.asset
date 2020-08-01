@@ -9,15 +9,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aaf06627cb1a5f245b1dca18dd96b093, type: 3}
-  m_Name: MarsTerrainData
+  m_Script: {fileID: 11500000, guid: cbba2444e128db24bba40f0b8bf248c6, type: 3}
+  m_Name: HeightMapSettings
   m_EditorClassIdentifier: 
   autoUpdate: 1
-  uniformScale: 2.5
-  meshHeightMultiplier: 40
-  useFlatShading: 1
+  noiseSettings:
+    normalizeMode: 0
+    scale: 50
+    octaves: 6
+    persistence: 0.5
+    lacunarity: 2
+    seed: 0
+    offset: {x: 0, y: 0}
   useFalloffMap: 0
-  meshHeightCurve:
+  heightMultiplier: 50
+  heightCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -30,22 +36,31 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.44450575
-      value: 0.09069702
-      inSlope: 0.6922461
-      outSlope: 0.6922461
+      time: 0.35995856
+      value: 0.0779085
+      inSlope: 0.23795313
+      outSlope: 0.23795313
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.115097255
-      outWeight: 0.07837758
+      inWeight: 0.33333334
+      outWeight: 0.07655237
+    - serializedVersion: 3
+      time: 0.743298
+      value: 0.5288635
+      inSlope: 1.6104387
+      outSlope: 1.6104387
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 2
-      outSlope: 2
+      inSlope: 0.22906709
+      outSlope: 0.22906709
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.30957186
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2

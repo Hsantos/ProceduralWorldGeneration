@@ -7,7 +7,7 @@ public partial class EndlessTerrain
         public Vector2 coord;
         
         private GameObject meshObject;
-        private Vector2 position;
+        private Vector2 sampleCenter;
         private Bounds bounds;
 
         private MeshRenderer meshRenderer;
@@ -17,22 +17,22 @@ public partial class EndlessTerrain
         private LODInfo[] detailLevels;
         private LODMesh[] lodMeshes;
 
-        private MapData mapData;
+        private HeightMap heightMap;
         private int previousLODIndex = -1;
         private int colliderLodIndex;
         
         private bool mapDataReceived;
         private bool hasSetCollider;
         
-        public TerrainChunk(Vector2 coord, int size, LODInfo[] detailLevels, int colliderLodIndex, Transform parent, Material material)
+        public TerrainChunk(Vector2 coord, float meshWorldSize, LODInfo[] detailLevels, int colliderLodIndex, Transform parent, Material material)
         {
             this.coord = coord;
             this.detailLevels = detailLevels;
             this.colliderLodIndex = colliderLodIndex;
             
-            position = coord * size;
-            bounds = new Bounds(position, Vector2.one * size);
-            Vector3 positionV3 = new Vector3(position.x, 0, position.y);
+            sampleCenter = coord * meshWorldSize / mapGenerator.MeshSettings.MeshScale;
+            Vector2 position = coord * meshWorldSize;
+            bounds = new Bounds(position, Vector2.one * meshWorldSize);
             
             meshObject = new GameObject("Terrain Chunk");
             meshRenderer = meshObject.AddComponent<MeshRenderer>();
@@ -40,9 +40,8 @@ public partial class EndlessTerrain
             meshCollider = meshObject.AddComponent<MeshCollider>();
             meshRenderer.material = material;
             
-            meshObject.transform.position = positionV3 * mapGenerator.TerrainData.UniformScale;
+            meshObject.transform.position = new Vector3(position.x, 0, position.y);
             meshObject.transform.parent = parent;
-            meshObject.transform.localScale = Vector3.one * mapGenerator.TerrainData.UniformScale;
             SetVisible(false);
 
             lodMeshes = new LODMesh[detailLevels.Length];
@@ -57,12 +56,12 @@ public partial class EndlessTerrain
                 }
             }
             
-            mapGenerator.RequestMapData(position, OnMapDataReceived);
+            mapGenerator.RequestHeightMap(sampleCenter,OnMapDataReceived);
         }
 
-        void OnMapDataReceived(MapData mapData)
+        void OnMapDataReceived(HeightMap heightMap)
         {
-            this.mapData = mapData;
+            this.heightMap = heightMap;
             mapDataReceived = true;
             
             UpdateTerrainChunk();
@@ -99,7 +98,7 @@ public partial class EndlessTerrain
                     }
                     else if(!lodMesh.hasRequestedMesh)
                     {
-                        lodMesh.RequestMesh(mapData);
+                        lodMesh.RequestMesh(heightMap);
                     }
                 }
             }
@@ -125,7 +124,7 @@ public partial class EndlessTerrain
             if (sqrDstFromViewerToEdge < detailLevels[colliderLodIndex].sqrVisibleDstThreshold)
             {
                 if (!lodMeshes[colliderLodIndex].hasRequestedMesh)
-                    lodMeshes[colliderLodIndex].RequestMesh(mapData);
+                    lodMeshes[colliderLodIndex].RequestMesh(heightMap);
             }
             
             if (sqrDstFromViewerToEdge < colliderGenerationDistanceThreshold * colliderGenerationDistanceThreshold)
