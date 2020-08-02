@@ -6,6 +6,12 @@ public static class HeightMapGenerator
     public static HeightMap GenerateHeightMap(int width, int height, HeightMapSettings settings, Vector2 sampleCenter)
     {
         float[,] values = Noise.GenerateNoiseMap(width, height, settings.NoiseSettings, sampleCenter);
+        
+        float[,] fallOff = new float[0,0];
+        if (settings.UseFalloffMap)
+        {
+            fallOff = FallOffGenerator.GenerateFalloffMap(width);
+        }
 
         AnimationCurve heighCurveThreadSafe = new AnimationCurve(settings.HeightCurve.keys);
 
@@ -16,6 +22,11 @@ public static class HeightMapGenerator
         {
             for (int j = 0; j < height; j++)
             {
+                if (settings.UseFalloffMap)
+                {
+                    values[i, j] -= fallOff[i, j];
+                }
+                
                 values[i, j] *= heighCurveThreadSafe.Evaluate(values[i, j]) * settings.HeightMultiplier;
 
                 if (values[i, j] > maxValue)
