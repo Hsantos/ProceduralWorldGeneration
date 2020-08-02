@@ -23,6 +23,7 @@ public static class HeightMapGenerator
             for (int j = 0; j < height; j++)
             {
                 if (settings.UseFalloffMap)
+                    
                 {
                     values[i, j] -= fallOff[i, j];
                 }
