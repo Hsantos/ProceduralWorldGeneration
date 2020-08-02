@@ -5,38 +5,33 @@ public static class MeshGenerator
 {
     public static MeshData GenerateTerrainMesh(float[,] heightMap, MeshSettings meshSettings, int levelOfDetail)
     {
-        int meshSimplificationIncrement = levelOfDetail == 0 ? 1 : levelOfDetail * 2;
-        
-        // The borderedSize will not be included in the final mesh. Using just to calculate the normals
-        int borderedSize = heightMap.GetLength(0); 
-        int meshSize = borderedSize - 2 * meshSimplificationIncrement;
-        int meshSizeUnsimplified = borderedSize - 2;
-        
-        // To set the vertex to the center
-        float topLeftX = (meshSizeUnsimplified - 1)/-2f;
-        float topLeftZ = (meshSizeUnsimplified - 1)/2f;
+        int skipIncrement = levelOfDetail == 0 ? 1 : levelOfDetail * 2;
 
-        int verticesPerLine = (meshSize - 1) / meshSimplificationIncrement + 1;
+        int numVertsPerLine = meshSettings.NumVerticesPerLine;
+
+        Vector2 topLeft = new Vector2(-1, 1) * meshSettings.MeshWorldSize / 2f;
         
-        MeshData meshData = new MeshData(verticesPerLine, meshSettings.UseFlatShading);
+        MeshData meshData = new MeshData(numVertsPerLine, skipIncrement, meshSettings.UseFlatShading);
         
-        int [,] vertexIndicesMap = new int[borderedSize,borderedSize];
+        int [,] vertexIndicesMap = new int[numVertsPerLine,numVertsPerLine];
         
         int meshVertexIndex = 0;
-        int borderVertexIndex = -1;
+        int outOfMeshVertexIndex = -1;
 
-        for (int y = 0; y < borderedSize; y += meshSimplificationIncrement)
+        for (int y = 0; y < numVertsPerLine; y++)
         {
-            for (int x = 0; x < borderedSize; x += meshSimplificationIncrement)
+            for (int x = 0; x < numVertsPerLine; x++)
             {
-                bool isBorderVertex = (y == 0 || y == borderedSize - 1 || x == 0 || x == borderedSize - 1);
-
-                if (isBorderVertex)
+                bool isOutOfMeshVertex = (y == 0 || y == numVertsPerLine - 1 || x == 0 || x == numVertsPerLine - 1);
+                bool isMainVertex = ((x - 2) % skipIncrement != 0 || (y - 2) % skipIncrement != 0);
+                bool isSkippedVertex = x > 2 && x < numVertsPerLine - 3 && y > 2 && y < numVertsPerLine - 3 && isMainVertex;
+                
+                if (isOutOfMeshVertex)
                 {
-                    vertexIndicesMap[x, y] = borderVertexIndex;
-                    borderVertexIndex--;
+                    vertexIndicesMap[x, y] = outOfMeshVertexIndex;
+                    outOfMeshVertexIndex--;
                 }
-                else
+                else if(!isSkippedVertex)
                 {
                     vertexIndicesMap[x, y] = meshVertexIndex;
                     meshVertexIndex++;
@@ -44,45 +39,68 @@ public static class MeshGenerator
             }
         }
 
-        for (int y = 0; y < borderedSize; y += meshSimplificationIncrement)
+        for (int y = 0; y < numVertsPerLine; y++)
         {
-            for (int x = 0; x < borderedSize; x += meshSimplificationIncrement)
+            for (int x = 0; x < numVertsPerLine; x++)
             {
-                int vertexIndex = vertexIndicesMap[x, y];
-                
-                Vector2 percent = new Vector2((x - meshSimplificationIncrement) / (float)meshSize, (y - meshSimplificationIncrement) / (float)meshSize);
-                
-                float meshHeight = heightMap[x, y];
-                Vector3 vertexPosition = new Vector3((topLeftX + percent.x * meshSizeUnsimplified) * meshSettings.MeshScale,
-                                                     meshHeight, 
-                                                     (topLeftZ - percent.y * meshSizeUnsimplified) * meshSettings.MeshScale);
-                
-                meshData.AddVertex(vertexPosition, percent, vertexIndex);
+                bool isSkippedVertex = x > 2 && x < numVertsPerLine - 3 && y > 2 && y < numVertsPerLine - 3 && ((x - 2) % skipIncrement != 0 || (y - 2) % skipIncrement != 0);
 
-                if (x < borderedSize - 1 && y < borderedSize - 1)
+                if (!isSkippedVertex)
                 {
-                    int pointA = vertexIndicesMap[x, y];
-                    int pointB = vertexIndicesMap[x + meshSimplificationIncrement, y];
-                    int pointC = vertexIndicesMap[x, y + meshSimplificationIncrement];
-                    int pointD = vertexIndicesMap[x + meshSimplificationIncrement, y + meshSimplificationIncrement];
-
-                    /* Setting the triangle according to the square point:
-                     * 
-                     *     a    b
-                     *      O    O
-                     * 
-                     *      O    O
-                     *     c    d
-                     *
-                     * Run clockwise to define the 2 triangles we have
-                     * Triangle A = adc
-                     * Triangle B = dab
-                     */
-                    meshData.AddTriangle(pointA, pointD, pointC);
-                    meshData.AddTriangle(pointD, pointA, pointB);
-                }
+                    bool isOutOfMeshVertex = y == 0 || y == numVertsPerLine - 1 || x == 0 || x == numVertsPerLine - 1;
+                    bool isMeshEdgeVertex = (y == 1 || y == numVertsPerLine - 2 || x == 1 || x == numVertsPerLine - 2) && !isOutOfMeshVertex;
+                    bool isMainVertex = (x - 2) % skipIncrement == 0 && (y - 2) % skipIncrement == 0 && !isOutOfMeshVertex && !isMeshEdgeVertex;
+                    bool isEdgeConnectionVertex = (y == 2 || y == numVertsPerLine - 3 || x == 2 || x == numVertsPerLine - 3) && !isOutOfMeshVertex && !isMeshEdgeVertex && !isMainVertex;
+                    
+                    int vertexIndex = vertexIndicesMap[x, y];
                 
-                vertexIndex++;
+                    Vector2 percent = new Vector2(x-1, y -1) / (numVertsPerLine - 3);
+                
+                    float height = heightMap[x, y];
+                    Vector2 vertexPosition2D = topLeft + new Vector2(percent.x, - percent.y) * meshSettings.MeshWorldSize;
+
+                    if (isEdgeConnectionVertex)
+                    {
+                        bool isVertical = x == 2 || x == numVertsPerLine - 3;
+                        int dstToMainVertexA = (isVertical ? (y - 2) : (x - 2)) % skipIncrement;
+                        int dstToMainVertexB = skipIncrement - dstToMainVertexA;
+
+                        float dstPercentFromAToB = dstToMainVertexA / (float)skipIncrement; 
+                        float heightMainVertexA = heightMap[isVertical ? x : x - dstToMainVertexA, isVertical ? y - dstToMainVertexA : y];
+                        float heightMainVertexB = heightMap[isVertical ? x : x + dstToMainVertexB, isVertical ? y + dstToMainVertexB : y];
+
+                        height = heightMainVertexA * (1 - dstPercentFromAToB) + heightMainVertexB * dstPercentFromAToB;
+                    }
+                    
+                    meshData.AddVertex(new Vector3(vertexPosition2D.x, height, vertexPosition2D.y), percent, vertexIndex);
+
+                    bool createTriangle = x < numVertsPerLine - 1 && y < numVertsPerLine - 1 && (!isEdgeConnectionVertex || (x != 2 && y != 2));
+                    
+                    if (createTriangle)
+                    {
+                        int currentIncrement = (isMainVertex && x != numVertsPerLine - 3 && y != numVertsPerLine - 3) ? skipIncrement : 1;
+                        
+                        int pointA = vertexIndicesMap[x, y];
+                        int pointB = vertexIndicesMap[x + currentIncrement, y];
+                        int pointC = vertexIndicesMap[x, y + currentIncrement];
+                        int pointD = vertexIndicesMap[x + currentIncrement, y + currentIncrement];
+
+                        /* Setting the triangle according to the square point:
+                         * 
+                         *     a    b
+                         *      O    O
+                         * 
+                         *      O    O
+                         *     c    d
+                         *
+                         * Run clockwise to define the 2 triangles we have
+                         * Triangle A = adc
+                         * Triangle B = dab
+                         */
+                        meshData.AddTriangle(pointA, pointD, pointC);
+                        meshData.AddTriangle(pointD, pointA, pointB);
+                    }
+                }
             }
         }
 

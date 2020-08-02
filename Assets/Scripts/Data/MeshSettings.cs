@@ -29,7 +29,7 @@ namespace ChannelThree.ProcedutalWorld.Data
         
         // Number of verts per line of mesh rendered at LOD = 0 (max resolution).
         // Includes the 2 extra verts used for calculate the normals but are exclude from final mesh
-        public int NumVerticesPerLine => SupportedChunkSizes[UseFlatShading ? flatShadedChunkSizeIndex : chunkSizeIndex] + 1;
+        public int NumVerticesPerLine => SupportedChunkSizes[UseFlatShading ? flatShadedChunkSizeIndex : chunkSizeIndex] + 5;
 
         public float MeshWorldSize => (NumVerticesPerLine - 3) * meshScale;
     }
