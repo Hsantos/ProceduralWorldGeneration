@@ -12,6 +12,10 @@ namespace ChannelThree.ProcedutalWorld.Data
         [SerializeField]
         private bool useFalloffMap;
         public bool UseFalloffMap => useFalloffMap;
+
+        [SerializeField]
+        private bool useCanyonMap;
+        public bool UseCanyonMap => useCanyonMap;
         
         [SerializeField]
         private float heightMultiplier = 40f;

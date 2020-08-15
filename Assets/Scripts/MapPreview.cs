@@ -8,7 +8,8 @@ public class MapPreview : MonoBehaviour
     {
         NoiseMap,
         Mesh,
-        FalloffMap
+        FalloffMap,
+        CanyonMap
     }
 
     [SerializeField]
@@ -102,6 +103,10 @@ public class MapPreview : MonoBehaviour
             
             case DrawMode.FalloffMap:
                 DrawTexture(TextureGenerator.TextureFromHeightMap(new HeightMap(FallOffGenerator.GenerateFalloffMap(meshSettings.NumVerticesPerLine),0,1)));
+                break;
+
+            case DrawMode.CanyonMap:
+            DrawTexture(TextureGenerator.TextureFromHeightMap(new HeightMap(CanyonMapGenerator.GenerateCanyonMap(meshSettings.NumVerticesPerLine),0,1)));
                 break;
             
             default:

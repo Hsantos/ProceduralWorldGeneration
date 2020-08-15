@@ -21,10 +21,10 @@ public static class FallOffGenerator
         return map; 
     }
 
-    public static float Evaluate(float value)
+    private static float Evaluate(float value)
     {
         float a = 3f;
-        float b =2.2f;
+        float b = 2.2f;
         
         // Applying to the formula:
         // f(x) Xª / xª + (b - bx)ª
