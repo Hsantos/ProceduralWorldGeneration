@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using ChannelThree.ProcedutalWorld.Data;
 using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
 {
+    
     private const float viewerMoveThresholdForChunkUpdate = 25f;
     private const float sqrViewerMoveThresholdForChunkUpdate = viewerMoveThresholdForChunkUpdate * viewerMoveThresholdForChunkUpdate;
 
@@ -18,8 +18,10 @@ public class TerrainGenerator : MonoBehaviour
     
     
     public Transform viewer;
-    public Material mapMaterial;
-
+    [SerializeField] private List<TerrainMaterial> allMaterials;
+    [SerializeField] private TerrainMaterial.Terrains terrainType;
+    private TerrainMaterial terrainMaterial;
+    
     private Vector2 viewerPosition;
     private Vector2 viewerPositionOld;
     private float meshWorldSize;
@@ -28,10 +30,16 @@ public class TerrainGenerator : MonoBehaviour
     private Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
     private List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
+    void Awake()
+    {
+        terrainMaterial = allMaterials.Find(m => m.materialType == terrainType);
+    }
+
+
     private void Start()
     {
-        textureDataSettings.ApplyToMaterial(mapMaterial);
-        textureDataSettings.UpdateMeshHeights(mapMaterial, heightMapSettings.MinHeight, heightMapSettings.MaxHeight);
+        textureDataSettings.ApplyToMaterial(terrainMaterial.GetMaterial());
+        textureDataSettings.UpdateMeshHeights(terrainMaterial.GetMaterial(), heightMapSettings.MinHeight, heightMapSettings.MaxHeight);
         
         float maxViewDst = detailLevels[detailLevels.Length - 1].visibleDstThreshold;
         meshWorldSize = meshSettings.MeshWorldSize;
@@ -94,7 +102,7 @@ public class TerrainGenerator : MonoBehaviour
                                                             colliderLODIndex,
                                                             transform,
                                                             viewer,
-                                                            mapMaterial);
+                                                            terrainMaterial.GetMaterial());
                             
                         terrainChunkDictionary.Add(viewedChunkCoord, terrainChunk);
                         terrainChunk.onVisibilityChanged += OnTerrainChunkVisibilityChanged;
